@@ -5,7 +5,7 @@ import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.mc.protocol.ServerLoginHandler;
-import com.github.steveice10.mc.protocol.data.message.*;
+import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.github.steveice10.mc.protocol.data.status.PlayerInfo;
 import com.github.steveice10.mc.protocol.data.status.ServerStatusInfo;
 import com.github.steveice10.mc.protocol.data.status.VersionInfo;
@@ -14,7 +14,10 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.ClientKeepAlivePac
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerRotationPacket;
-import com.github.steveice10.packetlib.event.server.*;
+import com.github.steveice10.packetlib.event.server.ServerAdapter;
+import com.github.steveice10.packetlib.event.server.ServerClosedEvent;
+import com.github.steveice10.packetlib.event.server.SessionAddedEvent;
+import com.github.steveice10.packetlib.event.server.SessionRemovedEvent;
 import com.github.steveice10.packetlib.event.session.PacketReceivedEvent;
 import com.github.steveice10.packetlib.event.session.SessionAdapter;
 import com.github.steveice10.packetlib.tcp.TcpSessionFactory;
@@ -158,7 +161,7 @@ public class Server {
 
 
     private void startServer() {
-        System.out.println("Starting to " + serverSettings.getHOST() + ":" + serverSettings.getPORT());
+        System.out.println("Starting with config: " + serverSettings.getHOST() + ":" + serverSettings.getPORT());
 
         // Start the packetlib Server
         this.packetServer = new com.github.steveice10.packetlib.Server(serverSettings.getHOST(), serverSettings.getPORT(),
