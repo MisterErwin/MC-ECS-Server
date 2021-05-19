@@ -7,13 +7,13 @@ import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.github.steveice10.mc.protocol.data.game.PlayerListEntry;
 import com.github.steveice10.mc.protocol.data.game.PlayerListEntryAction;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerPlayerListEntryPacket;
 import es.luepg.ecs.event.entity.PrePlayerQuitEvent;
 import es.luepg.ecs.event.login.PlayerJoinPreSpawnEvent;
 import es.luepg.ecs.world.entity.PlayerComponent;
 import net.engio.mbassy.listener.Handler;
 import net.engio.mbassy.listener.Listener;
+import net.kyori.adventure.text.Component;
 
 import java.util.Collection;
 
@@ -49,19 +49,24 @@ public class PlayerListSystem extends BaseSystem {
         PlayerListEntry[] newPlayerEntries = new PlayerListEntry[]{
                 new PlayerListEntry(event.getGameProfile(), GameMode.SURVIVAL,
                         ((Number) event.getSession().getFlag(MinecraftConstants.PING_KEY)).intValue(),
-                        new TextMessage(event.getGameProfile().getName()))
+                        Component.text(event.getGameProfile().getName())
+                )
+
         };
         int i = 0;
 
         // The new player joined packed
-        ServerPlayerListEntryPacket packet = new ServerPlayerListEntryPacket(PlayerListEntryAction.ADD_PLAYER, newPlayerEntries);
+        ServerPlayerListEntryPacket packet = new ServerPlayerListEntryPacket(PlayerListEntryAction.ADD_PLAYER,
+                newPlayerEntries);
 
         for (Entity playerEntity : players) {
             PlayerComponent pc = mPlayers.get(playerEntity);
             allPlayerEntries[i] = new PlayerListEntry(pc.getGameProfile(),
                     GameMode.SURVIVAL,
-                    ((Number) pc.getSession().getFlag(MinecraftConstants.PING_KEY)).intValue(),
-                    new TextMessage(pc.getGameProfile().getName() + " r " + playerEntity.getId())
+                    ((Number) pc.getSession().getFlag(MinecraftConstants.PING_KEY))
+                            .intValue(),
+                    Component.text(pc.getGameProfile().getName() + " r " + playerEntity
+                            .getId())
             );
 
             if (!pc.getGameProfile().equals(event.getGameProfile())) {
@@ -87,7 +92,8 @@ public class PlayerListSystem extends BaseSystem {
         PlayerListEntry[] leavingPlayerEntries = new PlayerListEntry[]{
                 new PlayerListEntry(mPlayers.get(event.getPlayer()).getGameProfile())
         };
-        ServerPlayerListEntryPacket packet = new ServerPlayerListEntryPacket(PlayerListEntryAction.REMOVE_PLAYER, leavingPlayerEntries);
+        ServerPlayerListEntryPacket packet = new ServerPlayerListEntryPacket(PlayerListEntryAction.REMOVE_PLAYER,
+                leavingPlayerEntries);
 
         for (Entity playerEntity : players) {
             PlayerComponent pc = mPlayers.get(playerEntity);

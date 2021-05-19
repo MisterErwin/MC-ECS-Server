@@ -1,8 +1,8 @@
 package es.luepg.ecs;
 
-import com.github.steveice10.mc.protocol.data.game.world.block.Blocks;
 import es.luepg.ecs.server.Server;
 import es.luepg.ecs.server.ServerSettings;
+import es.luepg.mcdata.data.game.world.block.Blocks;
 
 /**
  * @author elmexl
@@ -17,7 +17,7 @@ public class ServerMain {
         if (Blocks.AIR == null) {
             throw new RuntimeException("Failed to initialize blocks");
         }
-        System.out.println("Initialized blocks in " + (System.currentTimeMillis() - s) + "ms");
+        System.out.println("Initialized " + (Blocks.MAX_BLOCK_STATE_ID + 1) + " blocks in " + (System.currentTimeMillis() - s) + "ms");
 
         ServerSettings serverSettings = new ServerSettings();
 

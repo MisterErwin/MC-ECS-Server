@@ -3,6 +3,7 @@ package es.luepg.ecs.event.entity;
 import com.artemis.Entity;
 import es.luepg.ecs.world.World;
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * Super class for entity events
@@ -13,5 +14,6 @@ import lombok.Data;
 @Data
 public abstract class EntityEvent {
     private final Entity entity;
-    private final World world;
+  @ToString.Exclude
+  private final World world;
 }

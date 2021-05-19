@@ -4,12 +4,12 @@ import com.artemis.BaseSystem;
 import com.artemis.Entity;
 import com.artemis.WorldConfiguration;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.github.steveice10.mc.protocol.data.game.world.WorldType;
+import com.github.steveice10.opennbt.tag.builtin.*;
 import es.luepg.ecs.event.world.PreWorldCreateEvent;
 import es.luepg.ecs.server.Server;
 import es.luepg.ecs.timings.TimingHandler;
 import es.luepg.ecs.timings.TimingInvocationStrategy;
-import es.luepg.ecs.world.generator.FlatWorldGenerator;
+import es.luepg.ecs.world.generator.CheckerWaveWorldGenerator;
 import es.luepg.ecs.world.systems.*;
 import es.luepg.ecs.world.systems.blocks.SimpleBlockSystem;
 import es.luepg.ecs.world.systems.inventory.PlayerInventorySystem;
@@ -18,8 +18,10 @@ import es.luepg.ecs.world.systems.movement.MovementSystem;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 import java.io.File;
+import java.util.Map;
 import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -58,22 +60,26 @@ public class World {
 
     // ToDo: Do this nicer
     @NonNull
-    private FlatWorldGenerator worldGenerator = new FlatWorldGenerator();
+    @ToString.Exclude
+    private CheckerWaveWorldGenerator worldGenerator = new CheckerWaveWorldGenerator();
 
     // World info - TODO: Move me to an event?
     // or load me from a config & use onJoin events
     @Getter
-    private GameMode defaultGamemode = GameMode.CREATIVE;
+    private GameMode defaultGameMode = GameMode.CREATIVE;
 
-    @Getter
-    private WorldType worldType = WorldType.CUSTOMIZED;
+//    @Getter
+//    private WorldType worldType = WorldType.CUSTOMIZED;
 
     /**
      * The view distance that the client receives.
      * May be used by chunk handling systems
      */
     @Getter
-    private int viewDistance = 9;
+    private final int viewDistance = 9;
+
+    @Getter
+    private final int height = 16 * 16;
 
     /**
      * A queue holding tasks to run after the next world tick.
@@ -122,7 +128,7 @@ public class World {
 
         this.worldFile = new File("worlds", this.name);
 
-        this.chunkProvider = new ChunkProvider();
+        this.chunkProvider = new ChunkProvider(this);
 
         this.worldTimer = new TimingHandler(getName() + ": Main Loop");
 
@@ -154,16 +160,103 @@ public class World {
 
         worldConfiguration.setSystem(PlayerListSystem.class); //Player list
 
+//        worldConfiguration.register("")
 
         this.server.getEventBus().publish(new PreWorldCreateEvent(this, worldConfiguration));
 
         this.artemisWorld = new com.artemis.World(worldConfiguration);
+
 
         for (BaseSystem system : this.artemisWorld.getSystems()) {
             System.out.println("Subscribing " + system.getClass());
             this.server.getEventBus().subscribe(system);
         }
 
+    }
+
+    public CompoundTag getDimensionCodecTag() {
+        CompoundTag tag = new CompoundTag("");
+
+        CompoundTag dimensionTypes = new CompoundTag("minecraft:dimension_type");
+        dimensionTypes.put(new StringTag("type", "minecraft:dimension_type"));
+        ListTag dimensionTag = new ListTag("value");
+        CompoundTag overworldTag = convertToValue(getName(), 0, getDimensionTag().getValue());
+        dimensionTag.add(overworldTag);
+        dimensionTypes.put(dimensionTag);
+        tag.put(dimensionTypes);
+
+        CompoundTag biomeTypes = new CompoundTag("minecraft:worldgen/biome");
+        biomeTypes.put(new StringTag("type", "minecraft:worldgen/biome"));
+        ListTag biomeTag = new ListTag("value");
+        CompoundTag plainsTag = convertToValue("minecraft:plains", 0, getPlainsTag().getValue());
+        biomeTag.add(plainsTag);
+        biomeTypes.put(biomeTag);
+        tag.put(biomeTypes);
+
+        return tag;
+    }
+
+
+    public CompoundTag getDimensionTag() {
+        CompoundTag overworldTag = new CompoundTag("");
+        overworldTag.put(new StringTag("name", getName()));
+        overworldTag.put(new ByteTag("piglin_safe", (byte) 0));
+        overworldTag.put(new ByteTag("natural", (byte) 1));
+        overworldTag.put(new FloatTag("ambient_light", 0f));
+        overworldTag.put(new StringTag("infiniburn", "minecraft:infiniburn_overworld"));
+        overworldTag.put(new ByteTag("respawn_anchor_works", (byte) 0));
+        overworldTag.put(new ByteTag("has_skylight", (byte) 1));
+        overworldTag.put(new ByteTag("bed_works", (byte) 1));
+        overworldTag.put(new StringTag("effects", "minecraft:overworld"));
+        overworldTag.put(new ByteTag("has_raids", (byte) 1));
+        overworldTag.put(new IntTag("logical_height", 256));
+        overworldTag.put(new FloatTag("coordinate_scale", 1f));
+        overworldTag.put(new ByteTag("ultrawarm", (byte) 0));
+        overworldTag.put(new ByteTag("has_ceiling", (byte) 0));
+        overworldTag.put(new IntTag("height", this.getHeight()));
+        overworldTag.put(new IntTag("min_y", (int) 0));
+
+        return overworldTag;
+    }
+
+    private static CompoundTag getPlainsTag() {
+        CompoundTag plainsTag = new CompoundTag("");
+        plainsTag.put(new StringTag("name", "minecraft:plains"));
+        plainsTag.put(new StringTag("precipitation", "rain"));
+        plainsTag.put(new FloatTag("depth", 0.125f));
+        plainsTag.put(new FloatTag("temperature", 0.8f));
+        plainsTag.put(new FloatTag("scale", 0.05f));
+        plainsTag.put(new FloatTag("downfall", 0.4f));
+        plainsTag.put(new StringTag("category", "plains"));
+
+        CompoundTag effects = new CompoundTag("effects");
+        effects.put(new LongTag("sky_color", 7907327));
+        effects.put(new LongTag("water_fog_color", 329011));
+        effects.put(new LongTag("fog_color", 12638463));
+        effects.put(new LongTag("water_color", 4159204));
+
+        CompoundTag moodSound = new CompoundTag("mood_sound");
+        moodSound.put(new IntTag("tick_delay", 6000));
+        moodSound.put(new FloatTag("offset", 2.0f));
+        moodSound.put(new StringTag("sound", "minecraft:ambient.cave"));
+        moodSound.put(new IntTag("block_search_extent", 8));
+
+        effects.put(moodSound);
+
+        plainsTag.put(effects);
+
+        return plainsTag;
+    }
+
+    private static CompoundTag convertToValue(String name, int id, Map<String, Tag> values) {
+        CompoundTag tag = new CompoundTag(name);
+        tag.put(new StringTag("name", name));
+        tag.put(new IntTag("id", id));
+        CompoundTag element = new CompoundTag("element");
+        element.setValue(values);
+        tag.put(element);
+
+        return tag;
     }
 
     public Entity getPlayerEntity(UUID playerUUID) {

@@ -85,7 +85,7 @@ public class TimingInvocationStrategy extends SystemInvocationStrategy {
                     + " Times: " + handler.getTotalTicks());
             if (handler.getTotalTicks() != 0) {
                 long avg = handler.getTotalTime() / handler.getTotalTicks();
-                printStream.println(" Avg: " + avg);
+                printStream.println(" Avg: " + avg + " ns");
             }
         }
     }

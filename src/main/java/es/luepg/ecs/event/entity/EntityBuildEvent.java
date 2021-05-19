@@ -18,17 +18,17 @@ import java.util.Map;
  * Created on 01.06.2019.
  */
 @RequiredArgsConstructor
-public class EntityBuildEvent<T extends EntityBuildEvent> {
-    @Getter
-    private final World world;
+public class EntityBuildEvent<T extends EntityBuildEvent<?>> {
+  @Getter
+  private final World world;
 
 
-    private final Map<Class<? extends Component>, Component> components = new HashMap<>();
+  private final Map<Class<? extends Component>, Component> components = new HashMap<>();
 
-    public T with(Component component) {
-        this.components.put(component.getClass(), component);
-        return (T) this;
-    }
+  public T with(Component component) {
+    this.components.put(component.getClass(), component);
+    return (T) this;
+  }
 
     public Component getC(Class<? extends Component> comp) {
         return this.components.get(comp);

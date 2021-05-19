@@ -5,7 +5,6 @@ import com.artemis.utils.EntityBuilder;
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.github.steveice10.mc.protocol.data.game.chunk.Column;
-import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerPluginMessagePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerAbilitiesPacket;
@@ -57,7 +56,8 @@ public class PlayerJoinManager {
         GameProfile gameProfile = event.getSession().getFlag(MinecraftConstants.PROFILE_KEY);
 
         PlayerJoinSelectSpawnEvent chooseWorldEvent =
-                new PlayerJoinSelectSpawnEvent(event.getSession(), gameProfile, "default_world", new Location(0, 63, 0));
+                new PlayerJoinSelectSpawnEvent(event.getSession(), gameProfile, "ecs:default_world",
+                        new Location(0, 63, 0));
 
         server.getEventBus().publish(chooseWorldEvent);
 
@@ -87,14 +87,24 @@ public class PlayerJoinManager {
         Entity playerEntity = entityBuilder.build();
 
         System.out.println("Building playerEntity during JOIN ================ ");
-        System.out.println(playerEntity.getComponent(PlayerComponent.class).getGameProfile().getId());
-        System.out.println(playerEntity.getId());
 
-        // SENd the packets last
+        // Send the packets last
 
         event.getSession().send(new ServerJoinGamePacket(playerEntity.getId(), false,
-                world.getDefaultGamemode(), world.getDimensionId(), 10,
-                world.getWorldType(), world.getViewDistance(), false));
+                world.getDefaultGameMode(),
+                world.getDefaultGameMode(),
+                1,
+                new String[]{world.getName()},
+                world.getDimensionCodecTag(),
+                world.getDimensionTag(),
+                world.getName(),
+                100,
+                0,
+                world.getViewDistance(),
+                false,
+                true,
+                false,
+                true));
 
         try (ByteArrayOutputStream bout = new ByteArrayOutputStream()) {
             NetOutput brand = new StreamNetOutput(bout);
@@ -107,13 +117,16 @@ public class PlayerJoinManager {
             e.printStackTrace();
         }
 
-        event.getSession().send(new ServerSpawnPositionPacket(chooseWorldEvent.getSpawnLocation().toPos()));
+        event.getSession().send(new ServerSpawnPositionPacket(
+                chooseWorldEvent.getSpawnLocation().toPos(),
+                0
+        ));
 
         // TODO LOAD these from somewhere
         event.getSession().send(new ServerPlayerAbilitiesPacket(
                 true,
-                playerEntity.getComponent(FlyableComponent.class).isFlying(),
                 playerEntity.getComponent(FlyableComponent.class).isCanFly(),
+                playerEntity.getComponent(FlyableComponent.class).isFlying(),
                 true,
                 0.2f,
                 0.2f
@@ -128,9 +141,11 @@ public class PlayerJoinManager {
 
     @Handler
     public void onClientSettings(ClientSettingsPacketReceivedEvent event) {
-        System.err.println("Handling client settings");
+        System.err.println("Handling client settings - TODO");
 
         World world = event.getWorld();
+
+        // TODO: ONLY DO THIS THE FIRST TIME
 
         System.out.println("queuing stuff for the next tick");
         world.scheduleAfterTick(() -> {
@@ -145,7 +160,7 @@ public class PlayerJoinManager {
             event.getSession().send(
                     new ServerPlayerPositionRotationPacket(loc.getLocation().getX(),
                             loc.getLocation().getY(), loc.getLocation().getZ(),
-                            90, 0, 42));
+                            90, 0, 42, true));
 
         });
     }
@@ -153,8 +168,9 @@ public class PlayerJoinManager {
 
     @Handler
     public void onSpawnFinish(ClientTeleportConfirmPacketReceivedEvent event) {
-        if (((ClientTeleportConfirmPacket) event.getPacket()).getTeleportId() != 42)
+        if (event.getPacket().getId() != 42) {
             return;
+        }
 
         System.err.println("HANDLING ClientTeleportConfirmPacket 42");
 
@@ -165,7 +181,7 @@ public class PlayerJoinManager {
 
         LocatedComponent loc = player.getComponent(LocatedComponent.class);
 
-        int vd = world.getViewDistance() * 16;
+        int vd = (world.getViewDistance() + 1) * 16;
 
 
         int ox = (int) loc.getLocation().getX();
@@ -189,6 +205,7 @@ public class PlayerJoinManager {
     @Handler
     public void onLeave(SessionRemovedEvent sessionRemovedEvent) {
         GameProfile playerProf = SessionUtils.getGameProfile(sessionRemovedEvent.getSession());
+        if (playerProf == null) return; // Ping ?
         World world = server.getWorldOfPlayer(playerProf.getId());
 
         Entity player = world.getPlayerEntity(playerProf.getId());
@@ -207,8 +224,9 @@ public class PlayerJoinManager {
                 || deadMessage.getMessage() instanceof ClientPlayerPositionPacketReceivedEvent
                 || deadMessage.getMessage() instanceof ClientKeepAlivePacketReceivedEvent
                 || deadMessage.getMessage() instanceof ClientPlayerPositionRotationPacketReceivedEvent
-        )
+        ) {
             return;
+        }
         System.out.println("DIED:" + deadMessage.getMessage());
     }
 

@@ -5,7 +5,6 @@ import com.artemis.annotations.All;
 import com.artemis.systems.IteratingSystem;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockChangeRecord;
-import com.github.steveice10.mc.protocol.data.game.world.block.Blocks;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerBlockChangePacket;
 import es.luepg.ecs.world.ChunkProvider;
 import es.luepg.ecs.world.entity.GravityAffectedComponent;
@@ -13,6 +12,7 @@ import es.luepg.ecs.world.entity.LocatedComponent;
 import es.luepg.ecs.world.entity.MovingComponent;
 import es.luepg.ecs.world.systems.ChunkTrackerSystem;
 import es.luepg.ecs.world.util.Location;
+import es.luepg.mcdata.data.game.world.block.Blocks;
 
 
 /**
@@ -36,15 +36,19 @@ public class GravitySystem extends IteratingSystem {
         GravityAffectedComponent gravity = mGravity.get(eid);
         Location loc = mLocated.get(eid).getLocation();
 
-        // Is the entity falling?
+        if (loc.getY() < -64) {
+            return;
+        }
+        // Is the entity falling?44
         //ToDo: Have a isOnGround
-        if (chunkProvider.getBlockState((int) (loc.getX() + .5), (int) loc.getY() - 2, (int) (loc.getZ() + .5)).getBlock() != Blocks.AIR) {
+        if (chunkProvider.getBlockState((int) (loc.getX() - .0), (int) loc.getY() - 0, (int) (loc.getZ() - .0))
+                .getBlock() != Blocks.AIR) {
             chunkTrackerSystem.broadcastTo(
                     (int) (loc.getX() + .5) >> 4, (int) (loc.getZ() + .5) >> 4,
                     new ServerBlockChangePacket(
                             new BlockChangeRecord(
-                                    new Position((int) (loc.getX() + .5), (int) loc.getY() - 2, (int) (loc.getZ() + .5)),
-                                    Blocks.GREEN_TERRACOTTA.getDefaultState()
+                                    new Position((int) (loc.getX() - .0), (int) loc.getY() - 0, (int) (loc.getZ() - .0)),
+                                    Blocks.GREEN_TERRACOTTA.getDefaultState().getGlobalPaletteIndex()
                             )
                     )
             );

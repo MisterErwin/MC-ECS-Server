@@ -5,7 +5,6 @@ import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.mc.protocol.ServerLoginHandler;
-import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.github.steveice10.mc.protocol.data.status.PlayerInfo;
 import com.github.steveice10.mc.protocol.data.status.ServerStatusInfo;
 import com.github.steveice10.mc.protocol.data.status.VersionInfo;
@@ -33,6 +32,7 @@ import net.engio.mbassy.bus.MBassador;
 import net.engio.mbassy.bus.config.BusConfiguration;
 import net.engio.mbassy.bus.config.Feature;
 import net.engio.mbassy.bus.config.IBusConfiguration;
+import net.kyori.adventure.text.Component;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
@@ -166,12 +166,12 @@ public class Server {
         // Start the packetlib Server
         this.packetServer = new com.github.steveice10.packetlib.Server(serverSettings.getHOST(), serverSettings.getPORT(),
                 MinecraftProtocol.class, new TcpSessionFactory(serverSettings.getPROXY()));
-        packetServer.setGlobalFlag(MinecraftConstants.AUTH_PROXY_KEY, serverSettings.getAUTH_PROXY());
+//        packetServer.setGlobalFlag(MinecraftConstants.AUTH_PROXY_KEY, serverSettings.getAUTH_PROXY());
         packetServer.setGlobalFlag(MinecraftConstants.VERIFY_USERS_KEY, serverSettings.isVERIFY_USERS());
         // ToDo: Handle the server status info
         packetServer.setGlobalFlag(MinecraftConstants.SERVER_INFO_BUILDER_KEY, (ServerInfoBuilder) session -> new ServerStatusInfo(
                 new VersionInfo(MinecraftConstants.GAME_VERSION, MinecraftConstants.PROTOCOL_VERSION),
-                new PlayerInfo(100, 0, new GameProfile[0]), new TextMessage("Hello world!"),
+                new PlayerInfo(100, 0, new GameProfile[0]), Component.text("Hello world!"),
                 null));
 
         // Forward login to an event

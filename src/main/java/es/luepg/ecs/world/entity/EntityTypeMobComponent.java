@@ -1,7 +1,7 @@
 package es.luepg.ecs.world.entity;
 
 import com.artemis.Component;
-import com.github.steveice10.mc.protocol.data.game.entity.type.MobType;
+import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import lombok.*;
 
 /**
@@ -16,6 +16,7 @@ public class EntityTypeMobComponent extends Component {
     @Getter
     @Setter
     @NonNull
-    private MobType mobType;
+    private EntityType mobType;
+    //TODO: Finalize moving from MopType to EntityType, e.g. Items
 
 }

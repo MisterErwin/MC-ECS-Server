@@ -17,7 +17,7 @@
         <dependency>
             <groupId>com.github.steveice10</groupId>
             <artifactId>mcprotocollib</artifactId>
-            <version>1.14.3-with-data-SNAPSHOT</version>
+            <version>21w17a-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>net.onedaybeard.artemis</groupId>
@@ -42,11 +42,11 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.4</version>
+            <version>1.18.20</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.steveice10</groupId>
+            <groupId>es.luepg</groupId>
             <artifactId>mcprotocoldatagenerator</artifactId>
             <version>1.0.0-SNAPSHOT</version>
             <scope>compile</scope>
@@ -80,7 +80,7 @@
 
             <!--Data Generator-->
             <plugin>
-                <groupId>com.github.steveice10</groupId>
+                <groupId>es.luepg</groupId>
                 <artifactId>mcprotocoldatagenerator</artifactId>
                 <version>1.0.0-SNAPSHOT</version>
                 <executions>

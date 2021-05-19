@@ -1,6 +1,5 @@
 package es.luepg.ecs.world;
 
-import com.github.steveice10.mc.protocol.data.game.chunk.BlockStorage;
 
 /**
  * @author elmexl
@@ -8,15 +7,15 @@ import com.github.steveice10.mc.protocol.data.game.chunk.BlockStorage;
  */
 public class Chunk extends com.github.steveice10.mc.protocol.data.game.chunk.Chunk {
 
-    private final int y;
+//    private final int y;
 
-    public Chunk(boolean skylight, int y) {
-        super(skylight);
-        this.y = y;
-    }
-
-    public Chunk(BlockStorage blocks, int y) {
-        super(blocks);
-        this.y = y;
-    }
+//    public Chunk(boolean skylight, int y) {
+//        super(skylight);
+//        this.y = y;
+//    }
+//
+//    public Chunk(BlockStorage blocks, int y) {
+//        super(blocks);
+//        this.y = y;
+//    }
 }

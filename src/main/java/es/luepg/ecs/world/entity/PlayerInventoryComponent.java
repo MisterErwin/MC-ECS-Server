@@ -1,10 +1,12 @@
 package es.luepg.ecs.world.entity;
 
 import com.artemis.Component;
-import com.github.steveice10.mc.protocol.data.game.world.Material;
+import es.luepg.mcdata.data.game.world.Material;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+
+import java.util.Arrays;
 
 /**
  * The entity has a player inventory
@@ -31,8 +33,7 @@ public class PlayerInventoryComponent extends Component {
      */
 
     public PlayerInventoryComponent() {
-        for (int i = 0; i < inventory.length; i++)
-            inventory[i] = Material.AIR;
+        Arrays.fill(inventory, Material.AIR);
     }
 
     @Setter

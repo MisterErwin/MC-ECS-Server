@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import java.util.UUID;
 
 /**
+ * The entity has an UUID
+ *
  * @author elmexl
  * Created on 31.05.2019.
  */

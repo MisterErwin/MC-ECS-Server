@@ -4,6 +4,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
+import lombok.With;
 
 /**
  * @author elmexl
@@ -12,6 +13,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @Getter
 @ToString
+@With
 public class Location {
     private final double x, y, z;
 

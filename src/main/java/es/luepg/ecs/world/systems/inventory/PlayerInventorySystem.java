@@ -4,7 +4,6 @@ import com.artemis.BaseSystem;
 import com.artemis.ComponentMapper;
 import com.artemis.Entity;
 import com.artemis.World;
-import com.github.steveice10.mc.protocol.data.game.world.Material;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerChangeHeldItemPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCreativeInventoryActionPacket;
 import es.luepg.ecs.event.login.PlayerBuildEvent;
@@ -12,6 +11,7 @@ import es.luepg.ecs.packetwrapper.event.ingame.client.player.ClientPlayerChangeH
 import es.luepg.ecs.packetwrapper.event.ingame.client.window.ClientCreativeInventoryActionPacketReceivedEvent;
 import es.luepg.ecs.world.entity.PlayerInventoryComponent;
 import es.luepg.ecs.world.systems.PlayerEntityMapper;
+import es.luepg.mcdata.data.game.world.Material;
 import net.engio.mbassy.listener.Handler;
 
 /**
@@ -44,6 +44,8 @@ public class PlayerInventorySystem extends BaseSystem {
             inventory.getInventory()[actionPacket.getSlot()] = Material.AIR;
         } else {
             Material m = Material.byItemProtocolID(actionPacket.getClickedItem().getId());
+            System.out.println(actionPacket.getClickedItem().getId());
+            System.out.println("Setting slot to " + m.getName());
             inventory.getInventory()[actionPacket.getSlot()] = m;
         }
         //ToDo: Inventory Events
@@ -56,7 +58,7 @@ public class PlayerInventorySystem extends BaseSystem {
         if (event.getPlayerEntity() == null) return;
         PlayerInventoryComponent inventory = playerInventoryComponentMapper.get(event.getPlayerEntity());
 
-        inventory.setSelectedHotBarIndex(((ClientPlayerChangeHeldItemPacket) event.getPacket()).getSlot());
+        inventory.setSelectedHotBarIndex(event.getPacket().getSlot());
         //ToDo: Event
     }
 

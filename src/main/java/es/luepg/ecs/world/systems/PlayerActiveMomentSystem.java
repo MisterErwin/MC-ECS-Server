@@ -2,7 +2,7 @@ package es.luepg.ecs.world.systems;
 
 import com.artemis.BaseSystem;
 import com.artemis.ComponentMapper;
-import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerMovementPacket;
+import com.artemis.Entity;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerPositionRotationPacket;
 import es.luepg.ecs.event.entity.EntityChangeChunkEvent;
 import es.luepg.ecs.event.entity.PlayerMoveEvent;
@@ -36,32 +36,32 @@ public class PlayerActiveMomentSystem extends BaseSystem {
     public void onMove(ClientPlayerPositionPacketReceivedEvent event) {
         if (event.getWorld() == null || event.getWorld().getArtemisWorld() != this.getWorld()) return;
 
-        this.onMove_(event);
+        this.onMove_(event, event.getPacket().getX(), event.getPacket().getY(), event.getPacket().getZ());
     }
 
     @Handler
     public void onMoveRotate(ClientPlayerPositionRotationPacketReceivedEvent event) {
         if (event.getWorld() == null || event.getWorld().getArtemisWorld() != this.getWorld()) return;
 
-        this.onMove_(event);
-        this.onRotate_(event);
+        this.onMove_(event, event.getPacket().getX(), event.getPacket().getY(), event.getPacket().getZ());
+        this.onRotate_(event.getPlayerEntity(), event.getPacket().getYaw(), event.getPacket().getPitch());
     }
 
     @Handler
     public void onRotate(ClientPlayerRotationPacketReceivedEvent event) {
         if (event.getWorld() == null || event.getWorld().getArtemisWorld() != this.getWorld()) return;
 
-        this.onRotate_(event);
+        this.onRotate_(event.getPlayerEntity(), event.getPacket().getYaw(), event.getPacket().getPitch());
     }
 
-    private void onMove_(PlayerPacketReceivedEvent<? extends ClientPlayerMovementPacket> event) {
+    private void onMove_(PlayerPacketReceivedEvent<?> event, double x, double y, double z) {
         LocatedComponent locatedComponent = locatedComponentComponentMapper.get(event.getPlayerEntity());
 
         Location from = locatedComponent.getLocation();
 
-        Location to = new Location(event.getPacket().getX(),
-                event.getPacket().getY(),
-                event.getPacket().getZ());
+        Location to = new Location(x,
+                y,
+                z);
 
         if (from.distanceSquared(to) > 5 * 5) {
             System.out.println("Fancy movement to " + to + " from " + from);
@@ -69,7 +69,7 @@ public class PlayerActiveMomentSystem extends BaseSystem {
                     new ServerPlayerPositionRotationPacket(
                             from.getX(), from.getY(), from.getZ(),
                             0, 0,
-                            12
+                            12, false
                     )
             );
             return;
@@ -94,13 +94,13 @@ public class PlayerActiveMomentSystem extends BaseSystem {
         }
     }
 
-    private void onRotate_(PlayerPacketReceivedEvent<? extends ClientPlayerMovementPacket> event) {
-        HeadingComponent headingComponent = mHeading.get(event.getPlayerEntity());
+    private void onRotate_(Entity playerEntity, float yaw, float pitch) {
+        HeadingComponent headingComponent = mHeading.get(playerEntity);
 
         if (headingComponent == null) return;
 
-        headingComponent.setYaw((float) event.getPacket().getYaw());
-        headingComponent.setPitch((float) event.getPacket().getPitch());
+        headingComponent.setYaw(yaw);
+        headingComponent.setPitch(pitch);
     }
 
     @Override

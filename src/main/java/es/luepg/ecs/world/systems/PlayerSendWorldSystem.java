@@ -30,7 +30,7 @@ public class PlayerSendWorldSystem extends BaseSystem {
 
     @Handler
     public void onMove(PlayerMoveEvent event) {
-        int vd = event.getWorld().getViewDistance();
+        int vd = event.getWorld().getViewDistance() + 1;
 
         int tx = toChunk(event.getTo().getX()),
                 tz = toChunk(event.getTo().getZ());

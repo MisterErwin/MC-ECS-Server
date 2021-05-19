@@ -3,8 +3,10 @@ package es.luepg.ecs.world.systems.movement;
 import com.artemis.ComponentMapper;
 import com.artemis.annotations.All;
 import com.artemis.systems.IteratingSystem;
-import com.github.steveice10.mc.protocol.data.game.world.block.Blocks;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
+import com.github.steveice10.mc.protocol.data.game.world.block.BlockChangeRecord;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.*;
+import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerBlockChangePacket;
 import es.luepg.ecs.event.entity.EntityChangeChunkEvent;
 import es.luepg.ecs.world.ChunkProvider;
 import es.luepg.ecs.world.World;
@@ -13,6 +15,7 @@ import es.luepg.ecs.world.entity.LocatedComponent;
 import es.luepg.ecs.world.entity.MovingComponent;
 import es.luepg.ecs.world.systems.ChunkTrackerSystem;
 import es.luepg.ecs.world.util.Location;
+import es.luepg.mcdata.data.game.world.block.Blocks;
 
 /**
  * @author elmexl
@@ -29,9 +32,13 @@ public class MovementSystem extends IteratingSystem {
 
     private ChunkTrackerSystem trackerSystem;
 
+    private final static float MOT_DAMPENING = 0.91f;
+
     private boolean collides(Location location) {
-        return collides((int) Math.floor(location.getX() - 0.2), (int) Math.round(location.getY()), (int) Math.floor(location.getZ() - 0.2)) ||
-                collides((int) Math.ceil(location.getX() + 0.2), (int) Math.round(location.getY()), (int) Math.ceil(location.getZ() + 0.2));
+        return collides((int) Math.floor(location.getX() - 0.2), (int) Math.round(location.getY()),
+                (int) Math.floor(location.getZ() - 0.2)) ||
+                collides((int) Math.ceil(location.getX() + 0.2), (int) Math.round(location.getY()),
+                        (int) Math.ceil(location.getZ() + 0.2));
     }
 
     private boolean collides(int x, int y, int z) {
@@ -44,17 +51,28 @@ public class MovementSystem extends IteratingSystem {
         LocatedComponent locatedComponent = mLocated.get(eid);
         Location loc = locatedComponent.getLocation();
 
-        // ToDo: Real collisions
-        if (collides(loc.add(moving.getMotX(), 0, 0)))
-            moving.setMotX(0);
-        if (collides(loc.add(0, moving.getMotY(), 0)))
-            moving.setMotY(0);
-        if (collides(loc.add(0, 0, moving.getMotZ())))
-            moving.setMotZ(0);
-//        if (moving.getMotY() < 0)
-//            if (chunkProvider.getBlockState((int) loc.getX(), (int) loc.getY() - 2, (int) loc.getZ()).getBlock() != Blocks.AIR) {
-//                moving.setMotY(0);
-//            }
+        // ToDo: Real collisions with es.luepg.ecs.data.AABB s
+        if (moving.getMotX() != 0) {
+            if (collides(loc.add(moving.getMotX(), 0, 0))) {
+                moving.setMotX(0);
+            } else {
+                moving.setMotX(moving.getMotX() * MOT_DAMPENING);
+            }
+        }
+        if (moving.getMotY() != 0) {
+            if (collides(loc.add(0, moving.getMotY(), 0))) {
+                moving.setMotY(0);
+            } else {
+                moving.setMotY(moving.getMotY() * MOT_DAMPENING);
+            }
+        }
+        if (moving.getMotZ() != 0) {
+            if (collides(loc.add(0, 0, moving.getMotZ()))) {
+                moving.setMotZ(0);
+            } else {
+                moving.setMotZ(moving.getMotZ() * MOT_DAMPENING);
+            }
+        }
 
         int oldChunkX = locatedComponent.getChunkX();
         int oldChunkZ = locatedComponent.getChunkZ();
@@ -63,15 +81,19 @@ public class MovementSystem extends IteratingSystem {
         locatedComponent.setLocation(newLoc);
 
         if (oldChunkX != locatedComponent.getChunkX() || oldChunkZ != locatedComponent.getChunkZ()) {
-            EntityChangeChunkEvent entityChangeChunkEvent = new EntityChangeChunkEvent(world.getEntity(eid), world.getSystem(World.ReferenceSystem.class).getRealWorld(),
-                    oldChunkX, oldChunkZ, locatedComponent.getChunkX(), locatedComponent.getChunkZ());
-            world.getSystem(World.ReferenceSystem.class).getRealWorld().getServer().getEventBus().publish(entityChangeChunkEvent);
-            System.out.println("Changing chunk after movement");
+            EntityChangeChunkEvent entityChangeChunkEvent = new EntityChangeChunkEvent(world.getEntity(eid), world.getSystem(
+                    World.ReferenceSystem.class).getRealWorld(),
+                    oldChunkX, oldChunkZ,
+                    locatedComponent.getChunkX(),
+                    locatedComponent.getChunkZ());
+            world.getSystem(World.ReferenceSystem.class).getRealWorld().getServer().getEventBus()
+                    .publish(entityChangeChunkEvent);
         }
 
         Location lastLoc = moving.getLastLocation();
-        if (lastLoc == null)
+        if (lastLoc == null) {
             lastLoc = loc;
+        }
 
 //        System.out.println("Moved " + eid + "  " + lastLoc.distanceSquared(newLoc) + " sqrt " + moving);
 
@@ -115,7 +137,7 @@ public class MovementSystem extends IteratingSystem {
             System.out.println("loc. " + loc);
             System.out.println("lastLoc " + lastLoc);
         } else if (!rotationChanged) {
-            ServerEntityMovementPacket packet = new ServerEntityPositionPacket(eid,
+            ServerEntityPositionPacket packet = new ServerEntityPositionPacket(eid,
                     newLoc.getX() - lastLoc.getX(),
                     newLoc.getY() - lastLoc.getY(),
                     newLoc.getZ() - lastLoc.getZ(), true);
@@ -131,9 +153,10 @@ public class MovementSystem extends IteratingSystem {
 
             trackerSystem.broadcastTo(locatedComponent.getChunkX(), locatedComponent.getChunkZ(), packet, eid);
         }
-        if (yawChanged)
+        if (yawChanged) {
             trackerSystem.broadcastTo(locatedComponent.getChunkX(), locatedComponent.getChunkZ(),
                     new ServerEntityHeadLookPacket(eid, hc.getYaw()));
+        }
 
     }
 }

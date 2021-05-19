@@ -10,6 +10,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * Used by the {@link es.luepg.ecs.world.systems.ChunkTrackerSystem} on players.
+ * Players subscribe to these chunks.
+ *
  * @author elmexl
  * Created on 31.05.2019.
  */

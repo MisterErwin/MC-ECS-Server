@@ -53,9 +53,12 @@ public class TimingHandler {
             printStream.print("   " + handler.getName() + " Time: " + handler.totalTime + " Times: " + handler.totalTicks);
             if (handler.totalTicks != 0) {
                 long avg = handler.totalTime / handler.totalTicks;
-                printStream.println(" Avg: " + avg);
+                printStream.println(" Avg: " + avg + " ns");
+                double percentage = avg * 100.0 / 5e7;
+                printStream.println(" " + percentage + "% ");
             }
         }
+
     }
 
     public static void resetAll() {
