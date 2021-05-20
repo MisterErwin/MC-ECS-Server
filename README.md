@@ -9,7 +9,7 @@ This project uses mainly:
 
 Start it yourself:
  * Download the minecraft server jar of whatever MCProtocolLib version is used
- * Run the [minecraft data generators](https://wiki.vg/Data_Generators) with the `--server --reports` parameters and copy its reports so that the file `resources/reports/blocks.json` exists
+ * Run the [minecraft data generators](https://wiki.vg/Data_Generators) with the `--server --reports` parameters and copy its reports so that the file `./src/main/resources/reports/blocks.json` exists (relative from the main directory)
  * Build using maven
    * The [MCECSProtocolDataGenerator](https://github.com/MisterErwin/MCECSProtocolDataGenerator) tool then generates its classes from the reports
  * Finally, run the ServerMain 
