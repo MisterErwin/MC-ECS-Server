@@ -87,6 +87,8 @@
                     <execution>
                         <goals>
                             <goal>genpacketwrappers</goal>
+                            <goal>genblocks</goal>
+                            <goal>genmaterials</goal>
                         </goals>
                     </execution>
                 </executions>
